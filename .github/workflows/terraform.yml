@@ -48,7 +48,7 @@ jobs:
         run: terraform init -input=false && terraform validate
       - name: Verify tfvars exists
         run: |
-          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE/.."
           echo "TF_DIR=$TF_DIR"
           ls -la "$GITHUB_WORKSPACE" || true
           ls -la "$GITHUB_WORKSPACE/$TF_DIR" || true
