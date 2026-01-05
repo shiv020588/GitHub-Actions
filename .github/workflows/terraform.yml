@@ -48,7 +48,7 @@ jobs:
         id: plan
         working-directory: ${{ env.TF_DIR }}
         run: |
-          terraform plan -no-color -var-file=terraform.tfvars -out=tfplan -input=false || true
+          terraform plan -no-color -var-file=${{ github.workspace }}/${{ env.TF_DIR }}/terraform.tfvars -out=tfplan -input=false || true
           terraform show -no-color tfplan > plan.out || true
         continue-on-error: true
 
@@ -72,4 +72,4 @@ jobs:
       - name: Terraform Apply (Main Branch Only)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         working-directory: ${{ env.TF_DIR }}
-        run: terraform apply -var-file=terraform.tfvars -auto-approve -input=false
+        run: terraform apply -var-file=${{ github.workspace }}/${{ env.TF_DIR }}/terraform.tfvars -auto-approve -input=false
