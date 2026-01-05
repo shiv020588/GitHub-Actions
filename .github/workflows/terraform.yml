@@ -32,7 +32,15 @@ jobs:
       - name: Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::803103365620:role/GitHubWorkFlowActions # <-- Replace with your actual OIDC role ARN
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+          aws-region: ${{ env.TF_VAR_region }}
+
+      - name: Fallback AWS Credentials (if OIDC not configured)
+        if: ${{ !secrets.AWS_OIDC_ROLE_ARN }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.TF_VAR_region }}
 
       - name: Set up Terraform
