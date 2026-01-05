@@ -45,7 +45,7 @@ jobs:
           if [ -d "Kubernetes-Winfo/Terraform/EKS-Updated" ]; then
             cd Kubernetes-Winfo/Terraform/EKS-Updated
           elif [ -d "terraform" ]; then
-            cd terraform
+            cd Kubernetes-Winfo/Terraform/EKS-Updated
           else
             echo "No terraform directory found; skipping step"; exit 0
           fi
