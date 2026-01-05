@@ -39,16 +39,22 @@ jobs:
 
       - name: Terraform Format Check
         run: terraform fmt -check -recursive
+        working-directory: ../../GitHub/Kubernetes-Winfo/Terraform/EKS-Updated
 
       - name: Terraform Init
         run: terraform init
+        working-directory: ../../GitHub/Kubernetes-Winfo/Terraform/EKS-Updated
 
       - name: Terraform Validate
         run: terraform validate
+        working-directory: ../../GitHub/Kubernetes-Winfo/Terraform/EKS-Updated
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan -var-file="terraform.tfvars"
+        run: |
+          terraform plan -var-file="terraform.tfvars" -no-color -out=tfplan
+          terraform show -no-color -no-declarations=false tfplan > plan.out
+        working-directory: ../../GitHub/Kubernetes-Winfo/Terraform/EKS-Updated
         continue-on-error: true
 
       - name: Upload Plan as Artifact (PR Only)
@@ -56,8 +62,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: terraform-plan
-          path: plan.out
+          path: ../../GitHub/Kubernetes-Winfo/Terraform/EKS-Updated/plan.out
 
       - name: Terraform Apply (Main Branch Only)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -auto-approve -var-file="terraform.tfvars"
+        working-directory: ../../GitHub/Kubernetes-Winfo/Terraform/EKS-Updated
