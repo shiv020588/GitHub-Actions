@@ -24,6 +24,8 @@ jobs:
   terraform:
     runs-on: ubuntu-latest
     environment: production
+    env:
+      TF_DIR: EKS/EKS-Updated
 
     steps:
       - name: Checkout repository
@@ -40,23 +42,25 @@ jobs:
           terraform_version: 1.8.0
 
       - name: Terraform Validate
-        working-directory: EKS/EKS-Updated
+        working-directory: ${{ env.TF_DIR }}
         run: terraform init -input=false && terraform validate
-      - name: Upload plan artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: "EKS/EKS-Updated"
-          path: |
-            EKS/EKS-Updated/tfplan
-            EKS/EKS-Updated/.terraform.lock.hcl
-            EKS/EKS-Updated/terraform.tfstate
       - name: Terraform Plan
         id: plan
-        working-directory: EKS/EKS-Updated
+        working-directory: ${{ env.TF_DIR }}
         run: |
           terraform plan -no-color -out=tfplan -input=false || true
           terraform show -no-color tfplan > plan.out || true
         continue-on-error: true
+
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.TF_DIR }}
+          path: |
+            ${{ env.TF_DIR }}/tfplan
+            ${{ env.TF_DIR }}/.terraform.lock.hcl
+            ${{ env.TF_DIR }}/terraform.tfstate
+            ${{ env.TF_DIR }}/plan.out
 
       - name: Upload Plan as Artifact (PR Only)
         if: github.event_name == 'pull_request'
@@ -67,5 +71,5 @@ jobs:
 
       - name: Terraform Apply (Main Branch Only)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        working-directory: /EKS/EKS-Updated
+        working-directory: ${{ env.TF_DIR }}
         run: terraform apply -auto-approve -input=false
