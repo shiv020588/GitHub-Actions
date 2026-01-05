@@ -46,26 +46,18 @@ jobs:
       - name: Terraform Validate
         working-directory: ${{ env.TF_DIR }}
         run: terraform init -input=false && terraform validate
-      - name: Ensure terraform.tfvars exists (create placeholder if missing)
+      - name: Verify tfvars exists
         run: |
-          TFVARS_FILE="$GITHUB_WORKSPACE/$TF_DIR/terraform.tfvars"
-          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE/.."
           echo "TF_DIR=$TF_DIR"
           ls -la "$GITHUB_WORKSPACE" || true
           ls -la "$GITHUB_WORKSPACE/$TF_DIR" || true
-          if [ -f "$TFVARS_FILE" ]; then
-            echo "terraform.tfvars found: $TFVARS_FILE"
+          if [ -f "$GITHUB_WORKSPACE/$TF_DIR/terraform.tfvars" ]; then
+            echo "terraform.tfvars found: $GITHUB_WORKSPACE/$TF_DIR/terraform.tfvars"
           else
-            echo "terraform.tfvars not found at $TFVARS_FILE"
-            echo "Creating a placeholder terraform.tfvars (update with real values for apply)"
-            mkdir -p "$(dirname "$TFVARS_FILE")"
-            cat > "$TFVARS_FILE" <<EOF
-# Auto-generated placeholder - replace with real values before applying
-region = "${TF_VAR_region}"
-profile = "${TF_VAR_profile}"
-EOF
-            ls -la "$(dirname \"$TFVARS_FILE\")"
-            echo "Placeholder terraform.tfvars created at $TFVARS_FILE"
+            echo "ERROR: terraform.tfvars not found at $GITHUB_WORKSPACE/$TF_DIR/terraform.tfvars"
+            ls -la "$GITHUB_WORKSPACE/$TF_DIR"
+            exit 1
           fi
       - name: Terraform Plan
         id: plan
