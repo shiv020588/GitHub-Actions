@@ -30,6 +30,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
@@ -44,11 +46,24 @@ jobs:
       - name: Terraform Validate
         working-directory: ${{ env.TF_DIR }}
         run: terraform init -input=false && terraform validate
+      - name: Verify tfvars exists
+        run: |
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+          echo "TF_DIR=$TF_DIR"
+          ls -la "$GITHUB_WORKSPACE" || true
+          ls -la "$GITHUB_WORKSPACE/$TF_DIR" || true
+          if [ -f "$GITHUB_WORKSPACE/$TF_DIR/terraform.tfvars" ]; then
+            echo "terraform.tfvars found: $GITHUB_WORKSPACE/$TF_DIR/terraform.tfvars"
+          else
+            echo "ERROR: terraform.tfvars not found at $GITHUB_WORKSPACE/$TF_DIR/terraform.tfvars"
+            ls -la "$GITHUB_WORKSPACE/$TF_DIR"
+            exit 1
+          fi
       - name: Terraform Plan
         id: plan
         working-directory: ${{ env.TF_DIR }}
         run: |
-          terraform plan -no-color -var-file=${{ github.workspace }}/${{ env.TF_DIR }}/terraform.tfvars -out=tfplan -input=false || true
+          terraform plan -no-color -var-file="$GITHUB_WORKSPACE/$TF_DIR/terraform.tfvars" -out=tfplan -input=false || true
           terraform show -no-color tfplan > plan.out || true
         continue-on-error: true
 
@@ -72,4 +87,4 @@ jobs:
       - name: Terraform Apply (Main Branch Only)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         working-directory: ${{ env.TF_DIR }}
-        run: terraform apply -var-file=${{ github.workspace }}/${{ env.TF_DIR }}/terraform.tfvars -auto-approve -input=false
+        run: terraform apply -var-file="$GITHUB_WORKSPACE/$TF_DIR/terraform.tfvars" -auto-approve -input=false
