@@ -42,7 +42,13 @@ jobs:
       - name: Terraform Validate
         working-directory: EKS/EKS-Updated
         run: terraform init -input=false && terraform validate
-
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: "EKS/EKS-Updated"
+          path: |
+            EKS/EKS-Updated/tfplan
+            EKS/EKS-Updated/.terraform.lock.hcl
       - name: Terraform Plan
         id: plan
         working-directory: EKS/EKS-Updated
