@@ -39,43 +39,14 @@ jobs:
         with:
           terraform_version: 1.8.0
 
-      - name: Terraform Init
-        run: |
-          set -e
-          if [ -d "Kubernetes-Winfo/Terraform/EKS-Updated" ]; then
-            cd Kubernetes-Winfo/Terraform/EKS-Updated
-          elif [ -d "terraform" ]; then
-            cd Kubernetes-Winfo/Terraform/EKS-Updated
-          else
-            echo "No terraform directory found; skipping step"; exit 0
-          fi
-          terraform init
-
       - name: Terraform Validate
-        run: |
-          set -e
-          if [ -d "Kubernetes-Winfo/Terraform/EKS-Updated" ]; then
-            cd Kubernetes-Winfo/Terraform/EKS-Updated
-          elif [ -d "terraform" ]; then
-            cd terraform
-          else
-            echo "No terraform directory found; skipping step"; exit 0
-          fi
-          terraform validate
+        working-directory: Kubernetes-Winfo/Terraform/EKS-Updated
+        run: terraform init -input=false && terraform validate
 
       - name: Terraform Plan
         id: plan
-        run: |
-          set -e
-          if [ -d "Kubernetes-Winfo/Terraform/EKS-Updated" ]; then
-            cd Kubernetes-Winfo/Terraform/EKS-Updated
-          elif [ -d "terraform" ]; then
-            cd terraform
-          else
-            echo "No terraform directory found; skipping step"; exit 0
-          fi
-          terraform plan -var-file="terraform.tfvars" -no-color -out=tfplan || true
-          terraform show -no-color tfplan > plan.out || true
+        working-directory: Kubernetes-Winfo/Terraform/EKS-Updated
+        run:  terraform plan -var-file="terraform.tfvars" -no-color -out=tfplan || true &&  terraform show -no-color tfplan > plan.out || true
         continue-on-error: true
 
       - name: Upload Plan as Artifact (PR Only)
@@ -87,13 +58,5 @@ jobs:
 
       - name: Terraform Apply (Main Branch Only)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: |
-          set -e
-          if [ -d "Kubernetes-Winfo/Terraform/EKS-Updated" ]; then
-            cd Kubernetes-Winfo/Terraform/EKS-Updated
-          elif [ -d "terraform" ]; then
-            cd terraform
-          else
-            echo "No terraform directory found; skipping step"; exit 0
-          fi
-          terraform apply -auto-approve -var-file="terraform.tfvars"
+        working-directory: Kubernetes-Winfo/Terraform/EKS-Updated
+        run: terraform apply -auto-approve -var-file="terraform.tfvars"
