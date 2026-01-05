@@ -40,13 +40,15 @@ jobs:
           terraform_version: 1.8.0
 
       - name: Terraform Validate
-        working-directory: Kubernetes-Winfo/Terraform/EKS-Updated
+        working-directory: EKS/EKS-Updated
         run: terraform init -input=false && terraform validate
 
       - name: Terraform Plan
         id: plan
-        working-directory: Kubernetes-Winfo/Terraform/EKS-Updated
-        run:  terraform plan -var-file="terraform.tfvars" -no-color -out=tfplan || true &&  terraform show -no-color tfplan > plan.out || true
+        working-directory: EKS/EKS-Updated
+        run: |
+          terraform plan -var-file="terraform.tfvars" -no-color -out=tfplan || true
+          terraform show -no-color tfplan > plan.out || true
         continue-on-error: true
 
       - name: Upload Plan as Artifact (PR Only)
@@ -58,5 +60,5 @@ jobs:
 
       - name: Terraform Apply (Main Branch Only)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        working-directory: Kubernetes-Winfo/Terraform/EKS-Updated
+        working-directory: EKS/EKS-Updated
         run: terraform apply -auto-approve -var-file="terraform.tfvars"
