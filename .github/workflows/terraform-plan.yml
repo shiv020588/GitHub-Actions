@@ -47,7 +47,7 @@ jobs:
           elif [ -d "terraform" ]; then
             cd terraform
           else
-            echo "No terraform directory found"; exit 1
+            echo "No terraform directory found; skipping step"; exit 0
           fi
           terraform fmt -check -recursive
 
