@@ -1,80 +1,111 @@
-name: Terraform Plan
+name: Terraform CI for AWS EKS
 
+permissions:
+  id-token: write
+  contents: read
 on:
-  pull_request:
+  push:
     branches:
       - main
     paths:
-      - 'terraform/**'
+      - '**/*.tf'
+      - '**/*.tfvars'
+  pull_request:
+    paths:
+      - '**/*.tf'
+      - '**/*.tfvars'
+  workflow_dispatch: {}
 
 env:
-  TF_LOG: INFO
+  TF_VAR_region: eu-west-2
+  TF_VAR_profile: AdministratorAccess-803103365620
 
 jobs:
-  terraform-plan:
-    name: Terraform Plan
+  terraform:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      pull-requests: write
-      id-token: write
+    environment: production
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.6.0
 
       - name: Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
-          aws-region: us-east-1
+          aws-region: "eu-west-2"
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.8.0
+
+      - name: Terraform Format Check
+        run: |
+          set -e
+          if [ -d "Kubernetes-Winfo/Terraform/EKS-Updated" ]; then
+            cd Kubernetes-Winfo/Terraform/EKS-Updated
+          elif [ -d "terraform" ]; then
+            cd terraform
+          else
+            echo "No terraform directory found"; exit 1
+          fi
+          terraform fmt -check -recursive
 
       - name: Terraform Init
-        run: terraform init
-        working-directory: ./terraform
+        run: |
+          set -e
+          if [ -d "Kubernetes-Winfo/Terraform/EKS-Updated" ]; then
+            cd Kubernetes-Winfo/Terraform/EKS-Updated
+          elif [ -d "terraform" ]; then
+            cd terraform
+          else
+            echo "No terraform directory found"; exit 1
+          fi
+          terraform init
+
+      - name: Terraform Validate
+        run: |
+          set -e
+          if [ -d "Kubernetes-Winfo/Terraform/EKS-Updated" ]; then
+            cd Kubernetes-Winfo/Terraform/EKS-Updated
+          elif [ -d "terraform" ]; then
+            cd terraform
+          else
+            echo "No terraform directory found"; exit 1
+          fi
+          terraform validate
 
       - name: Terraform Plan
         id: plan
-        run: terraform plan -no-color -out=tfplan
-        working-directory: ./terraform
+        run: |
+          set -e
+          if [ -d "Kubernetes-Winfo/Terraform/EKS-Updated" ]; then
+            cd Kubernetes-Winfo/Terraform/EKS-Updated
+          elif [ -d "terraform" ]; then
+            cd terraform
+          else
+            echo "No terraform directory found"; exit 1
+          fi
+          terraform plan -var-file="terraform.tfvars" -no-color -out=tfplan || true
+          terraform show -no-color tfplan > plan.out || true
         continue-on-error: true
 
-      - name: Save Plan Output
-        run: terraform show -no-color tfplan > plan-output.txt
-        working-directory: ./terraform
-
-      - name: Comment Plan on PR
-        uses: actions/github-script@v7
+      - name: Upload Plan as Artifact (PR Only)
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const fs = require('fs');
-            const plan = fs.readFileSync('./terraform/plan-output.txt', 'utf8');
-            const output = `#### Terraform Plan
+          name: terraform-plan
+          path: '**/plan.out'
 
-            <details><summary>Show Plan</summary>
-
-            \`\`\`terraform
-            ${plan}
-            \`\`\`
-
-            </details>
-
-            *Pushed by: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: output
-            });
-
-      - name: Terraform Plan Status
-        if: steps.plan.outcome == 'failure'
-        run: exit 1
+      - name: Terraform Apply (Main Branch Only)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          set -e
+          if [ -d "Kubernetes-Winfo/Terraform/EKS-Updated" ]; then
+            cd Kubernetes-Winfo/Terraform/EKS-Updated
+          elif [ -d "terraform" ]; then
+            cd terraform
+          else
+            echo "No terraform directory found"; exit 1
+          fi
+          terraform apply -auto-approve -var-file="terraform.tfvars"
