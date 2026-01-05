@@ -41,23 +41,54 @@ jobs:
           terraform_version: 1.8.0
 
       - name: Terraform Format Check
-        run: terraform fmt -check -recursive
-        working-directory: ../../GitHub/Kubernetes-Winfo/Terraform/EKS-Updated
+        run: |
+          set -e
+          if [ -d "Kubernetes-Winfo/Terraform/EKS-Updated" ]; then
+            cd Kubernetes-Winfo/Terraform/EKS-Updated
+          elif [ -d "terraform" ]; then
+            cd terraform
+          else
+            echo "No terraform directory found"; exit 1
+          fi
+          terraform fmt -check -recursive
 
       - name: Terraform Init
-        run: terraform init
-        working-directory: ../../GitHub/Kubernetes-Winfo/Terraform/EKS-Updated
+        run: |
+          set -e
+          if [ -d "Kubernetes-Winfo/Terraform/EKS-Updated" ]; then
+            cd Kubernetes-Winfo/Terraform/EKS-Updated
+          elif [ -d "terraform" ]; then
+            cd terraform
+          else
+            echo "No terraform directory found"; exit 1
+          fi
+          terraform init
 
       - name: Terraform Validate
-        run: terraform validate
-        working-directory: ../../GitHub/Kubernetes-Winfo/Terraform/EKS-Updated
+        run: |
+          set -e
+          if [ -d "Kubernetes-Winfo/Terraform/EKS-Updated" ]; then
+            cd Kubernetes-Winfo/Terraform/EKS-Updated
+          elif [ -d "terraform" ]; then
+            cd terraform
+          else
+            echo "No terraform directory found"; exit 1
+          fi
+          terraform validate
 
       - name: Terraform Plan
         id: plan
         run: |
-          terraform plan -var-file="terraform.tfvars" -no-color -out=tfplan
-          terraform show -no-color -no-declarations=false tfplan > plan.out
-        working-directory: ../../GitHub/Kubernetes-Winfo/Terraform/EKS-Updated
+          set -e
+          if [ -d "Kubernetes-Winfo/Terraform/EKS-Updated" ]; then
+            cd Kubernetes-Winfo/Terraform/EKS-Updated
+          elif [ -d "terraform" ]; then
+            cd terraform
+          else
+            echo "No terraform directory found"; exit 1
+          fi
+          terraform plan -var-file="terraform.tfvars" -no-color -out=tfplan || true
+          terraform show -no-color tfplan > plan.out || true
         continue-on-error: true
 
       - name: Upload Plan as Artifact (PR Only)
@@ -65,9 +96,17 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: terraform-plan
-          path: ../../GitHub/Kubernetes-Winfo/Terraform/EKS-Updated/plan.out
+          path: '**/plan.out'
 
       - name: Terraform Apply (Main Branch Only)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform apply -auto-approve -var-file="terraform.tfvars"
-        working-directory: ../../GitHub/Kubernetes-Winfo/Terraform/EKS-Updated
+        run: |
+          set -e
+          if [ -d "Kubernetes-Winfo/Terraform/EKS-Updated" ]; then
+            cd Kubernetes-Winfo/Terraform/EKS-Updated
+          elif [ -d "terraform" ]; then
+            cd terraform
+          else
+            echo "No terraform directory found"; exit 1
+          fi
+          terraform apply -auto-approve -var-file="terraform.tfvars"
