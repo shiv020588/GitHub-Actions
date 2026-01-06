@@ -54,22 +54,22 @@ jobs:
           terraform show -no-color tfplan > plan.out || true
 #        continue-on-error: true
 
-      - name: Upload plan artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.TF_DIR }}
-          path: |
-            ${{ env.TF_DIR }}/tfplan
-            ${{ env.TF_DIR }}/.terraform.lock.hcl
-            ${{ env.TF_DIR }}/terraform.tfstate
-            ${{ env.TF_DIR }}/plan.out
+      # - name: Upload plan artifact
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: ${{ env.TF_DIR }}
+      #     path: |
+      #       ${{ env.TF_DIR }}/tfplan
+      #       ${{ env.TF_DIR }}/.terraform.lock.hcl
+      #       ${{ env.TF_DIR }}/terraform.tfstate
+      #       ${{ env.TF_DIR }}/plan.out
 
-      - name: Upload Plan as Artifact (PR Only)
-        if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-plan
-          path: '**/plan.out'
+      # - name: Upload Plan as Artifact (PR Only)
+      #   if: github.event_name == 'pull_request'
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: terraform-plan
+      #     path: '**/plan.out'
 
       - name: Terraform Apply (Main Branch Only)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
