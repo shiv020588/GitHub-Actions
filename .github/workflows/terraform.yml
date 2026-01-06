@@ -50,7 +50,7 @@ jobs:
         id: plan
         working-directory: ${{ env.TF_DIR }}
         run: |
-          terraform plan -no-color -var-file="$TF_DIR/terraform.tfvars" -out=tfplan -input=false || true
+          terraform plan -no-color -var-file="terraform.tfvars" -out=tfplan -input=false || true
           terraform show -no-color tfplan > plan.out || true
         continue-on-error: true
 
