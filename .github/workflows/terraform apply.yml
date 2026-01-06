@@ -54,10 +54,16 @@ jobs:
           terraform show -no-color tfplan > plan.out || true
         continue-on-error: true
 
+      - name: Sanitize artifact name
+        id: sanitize
+        run: |
+          ART=${TF_DIR//\//-}
+          echo "artifact_name=$ART" >> $GITHUB_OUTPUT
+
       - name: Upload plan artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.TF_DIR }}
+          name: ${{ steps.sanitize.outputs.artifact_name }}
           path: |
             ${{ env.TF_DIR }}/tfplan
             ${{ env.TF_DIR }}/.terraform.lock.hcl
@@ -71,7 +77,7 @@ jobs:
       #     name: terraform-plan
       #     path: '**/plan.out'
 
-      - name: Terraform Apply (Main Branch Only)
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        working-directory: ${{ env.TF_DIR }}
-        run: terraform apply -auto-approve -input=false
+      # - name: Terraform Apply (Main Branch Only)
+      #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+      #   working-directory: ${{ env.TF_DIR }}
+      #   run: terraform apply -auto-approve -input=false
