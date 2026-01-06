@@ -46,16 +46,21 @@ jobs:
       - name: Terraform Validate
         working-directory: ${{ env.TF_DIR }}
         run: terraform init -input=false && terraform validate
-      # - name: Upload plan artifact
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: ${{ env.TF_DIR }}
-      #     path: |
-      #       ${{ env.TF_DIR }}/tfplan
-      #       ${{ env.TF_DIR }}/.terraform.lock.hcl
-      #       ${{ env.TF_DIR }}/terraform.tfstate
-      #       ${{ env.TF_DIR }}/plan.out
 
+      - name: Sanitize artifact name
+        id: sanitize
+        run: |
+          ART=${TF_DIR//\//-}
+          echo "artifact_name=$ART" >> $GITHUB_OUTPUT
+      - name: Upload plan artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.sanitize.outputs.artifact_name }}
+          path: |
+            ${{ env.TF_DIR }}/tfplan
+            ${{ env.TF_DIR }}/.terraform.lock.hcl
+            ${{ env.TF_DIR }}/terraform.tfstate
+            ${{ env.TF_DIR }}/plan.out
       # - name: Upload Plan as Artifact (PR Only)
       #   if: github.event_name == 'pull_request'
       #   uses: actions/upload-artifact@v4
