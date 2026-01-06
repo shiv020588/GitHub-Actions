@@ -46,19 +46,6 @@ jobs:
       - name: Terraform Validate
         working-directory: ${{ env.TF_DIR }}
         run: terraform init -input=false && terraform validate
-      - name: Verify tfvars exists
-        run: |
-          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE/.."
-          echo "TF_DIR=$TF_DIR"
-          ls -la "$GITHUB_WORKSPACE" || true
-          ls -la "$GITHUB_WORKSPACE/$TF_DIR" || true
-          if [ -f "$GITHUB_WORKSPACE/$TF_DIR/terraform.tfvars" ]; then
-            echo "terraform.tfvars found: $GITHUB_WORKSPACE/$TF_DIR/terraform.tfvars"
-          else
-            echo "ERROR: terraform.tfvars not found at $GITHUB_WORKSPACE/$TF_DIR/terraform.tfvars"
-            ls -la "$GITHUB_WORKSPACE/$TF_DIR"
-            exit 1
-          fi
       - name: Terraform Plan
         id: plan
         working-directory: ${{ env.TF_DIR }}
