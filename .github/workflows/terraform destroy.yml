@@ -1,4 +1,4 @@
-name: Terraform CI for AWS-EKS Apply
+name: Terraform CI for AWS-EKS Destroy
 
 permissions:
   id-token: write
