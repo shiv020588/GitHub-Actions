@@ -79,4 +79,4 @@ jobs:
 
       - name: Terraform Apply (Main Branch Only)
         working-directory: ${{ env.TF_DIR }}
-        run: terraform apply tfplan -input=false
+        run: terraform apply tfplan
