@@ -46,14 +46,6 @@ jobs:
       - name: Terraform Validate
         working-directory: ${{ env.TF_DIR }}
         run: terraform init -input=false && terraform validate
-      - name: Terraform Plan
-        id: plan
-        working-directory: ${{ env.TF_DIR }}
-        run: |
-          terraform plan -no-color -out=tfplan -input=false || true
-          terraform show -no-color tfplan > plan.out || true
-        continue-on-error: true
-
       # - name: Upload plan artifact
       #   uses: actions/upload-artifact@v4
       #   with:
@@ -71,7 +63,7 @@ jobs:
       #     name: terraform-plan
       #     path: '**/plan.out'
 
-      - name: Terraform Apply (Main Branch Only)
+      - name: Terraform Destroy (Main Branch Only)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         working-directory: ${{ env.TF_DIR }}
         run: terraform destroy -auto-approve -input=false
