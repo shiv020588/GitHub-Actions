@@ -74,6 +74,8 @@ variable "eks_aws_module" {
 variable "eks_aws_module_version" {
   description = "The version of the EKS AWS Module to use"
   type        = string
+  default = "20.8.5"
+  
 }
 variable "enable_nat_gateway" {
   description = "Enable NAT Gateway"
