@@ -52,7 +52,7 @@ jobs:
         run: |
           terraform plan -no-color -var-file="terraform.tfvars" -out=tfplan -input=false || true
           terraform show -no-color tfplan > plan.out || true
-#        continue-on-error: true
+        continue-on-error: true
 
       # - name: Upload plan artifact
       #   uses: actions/upload-artifact@v4
