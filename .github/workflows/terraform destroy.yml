@@ -64,6 +64,5 @@ jobs:
       #     path: '**/plan.out'
 
       - name: Terraform Destroy (Main Branch Only)
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         working-directory: ${{ env.TF_DIR }}
         run: terraform destroy -auto-approve -input=false
