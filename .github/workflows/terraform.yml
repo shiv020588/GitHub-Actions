@@ -74,4 +74,4 @@ jobs:
       - name: Terraform Apply (Main Branch Only)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         working-directory: ${{ env.TF_DIR }}
-        run: terraform apply -auto-approve -input=false
+        run: terraform apply -auto-approve -input=fals
