@@ -54,45 +54,7 @@ jobs:
         run: |
           set -o pipefail
           terraform plan -no-color -out=tfplan -input=false
-          PLAN_EXIT=$?
-          terraform show -no-color tfplan > plan.out || true
-          echo "plan_exit=$PLAN_EXIT" >> $GITHUB_OUTPUT
-
-      - name: Sanitize artifact name
-        id: sanitize
-        run: |
-          ART=${TF_DIR//\//-}
-          echo "artifact_name=$ART" >> $GITHUB_OUTPUT
-
-      - name: Upload plan artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.sanitize.outputs.artifact_name }}
-          path: |
-            ${{ env.TF_DIR }}/tfplan
-            ${{ env.TF_DIR }}/.terraform.lock.hcl
-            ${{ env.TF_DIR }}/terraform.tfstate
-            ${{ env.TF_DIR }}/plan.out
 
       - name: Terraform Apply (Main Branch Only)
-        if: github.ref == 'refs/heads/main'  && steps.plan.outputs.plan_exit == '0'
         working-directory: ${{ env.TF_DIR }}
-        run: terraform apply -auto-approve -input=false
-
-      - name: Collect state files
-        if: always()
-        run: |
-          mkdir -p state-artifact
-          SRC="$GITHUB_WORKSPACE/$TF_DIR"
-          if [ -f "$SRC/terraform.tfstate" ]; then cp "$SRC/terraform.tfstate" state-artifact/; fi
-          if [ -f "$SRC/.terraform.lock.hcl" ]; then cp "$SRC/.terraform.lock.hcl" state-artifact/; fi
-          if [ -f "$SRC/plan.out" ]; then cp "$SRC/plan.out" state-artifact/; fi
-          if [ -f "$SRC/tfplan" ]; then cp "$SRC/tfplan" state-artifact/; fi
-          echo "state_path=state-artifact" >> $GITHUB_OUTPUT
-
-      - name: Upload state artifact
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ steps.sanitize.outputs.artifact_name }}-state
-          path: state-artifact/**
+        run: terraform apply tfplan
