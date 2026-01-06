@@ -8,12 +8,6 @@
 
 # Filter out local zones, which are not currently supported 
 # with managed node groups
-terraform {
-  backend "azurerm" {
-    storage_account_name = "terraf0rmstate"
-    key                  = "terraform.tfstate"
-  }
-}
 data "aws_availability_zones" "available" {
   filter {
     name   = "opt-in-status"
