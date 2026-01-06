@@ -58,6 +58,7 @@ jobs:
       - name: Terraform Apply (Main Branch Only)
         working-directory: ${{ env.TF_DIR }}
         run: terraform apply tfplan
+        continue-on-error: true
       - name: Commit and Push State File
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
