@@ -38,7 +38,6 @@ jobs:
         with:
           role-to-assume: "arn:aws:iam::803103365620:role/GitHubWorkFlowActions"
           aws-region: "eu-west-2"
-
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
         with:
@@ -47,7 +46,6 @@ jobs:
       - name: Terraform Validate
         working-directory: ${{ env.TF_DIR }}
         run: terraform init -input=false && terraform validate
-
       - name: Terraform Plan
         id: plan
         working-directory: ${{ env.TF_DIR }}
@@ -73,6 +71,13 @@ jobs:
             ${{ env.TF_DIR }}/.terraform.lock.hcl
             ${{ env.TF_DIR }}/terraform.tfstate
             ${{ env.TF_DIR }}/plan.out
+
+      # - name: Upload Plan as Artifact (PR Only)
+      #   if: github.event_name == 'pull_request'
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: terraform-plan
+      #     path: '**/plan.out'
 
       - name: Terraform Apply (Main Branch Only)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push' && steps.plan.outputs.plan_exit == '0'
