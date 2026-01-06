@@ -1,4 +1,4 @@
-name: Terraform CI for AWS-EKS
+name: Terraform CI for AWS-EKS Apply
 
 permissions:
   id-token: write
